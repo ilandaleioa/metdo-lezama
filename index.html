@@ -1,0 +1,124 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lezama Technical Suite | Athletic Club</title>
+    
+    <!-- Optimizaciones de Red -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cplqwpcyhrploarxgyxj.supabase.co">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+      // Inyección segura de variables de entorno para producción
+      window.process = { 
+        env: {
+          NEXT_PUBLIC_SUPABASE_URL: "https://cplqwpcyhrploarxgyxj.supabase.co",
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwbHF3cGN5aHJwbG9hcnhneXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjExNjUsImV4cCI6MjA4NjM5NzE2NX0.zoEjyKY7oDiTwnrx805vPDonSA8p95yZiVB4e5n3-tA",
+          API_KEY: "" // Se inyecta vía Secret Manager en Cloud Run
+        } 
+      };
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121212;
+            color: #FFFFFF;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #525252; border-radius: 10px; }
+        
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: fadeIn 0.4s ease-out forwards; }
+
+        /* ESTILOS DE IMPRESIÓN PARA PDF */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            #root > div {
+                display: block !important;
+                height: auto !important;
+            }
+            /* Ocultar barra lateral y UI de navegación */
+            aside, .fixed, .sticky, nav, .lg\:static, .shrink-0.border-r, 
+            button.print\:hidden, .bg-\[\#525252\], .bg-white\/5 {
+                display: none !important;
+            }
+            /* Ajustar contenedores principales */
+            main {
+                margin: 0 !important;
+                padding: 0 !important;
+                overflow: visible !important;
+                display: block !important;
+                width: 100% !important;
+                background: white !important;
+            }
+            .lg\:hidden, .hidden.md\:block, .fixed.top-6 {
+                display: none !important;
+            }
+            /* Asegurar que el contenido use todo el ancho */
+            .w-full.min-h-full.p-4.md\:p-8 {
+                padding: 0 !important;
+                margin: 0 !important;
+                width: 100% !important;
+            }
+            /* Forzar colores en PDF */
+            .print\:text-black { color: black !important; }
+            .print\:bg-white { background: white !important; }
+            .print\:bg-gray-50 { background: #f9fafb !important; }
+            .print\:border-gray-200 { border-color: #e5e7eb !important; }
+            
+            /* Saltos de página inteligentes */
+            .print\:page-break-inside-avoid {
+                page-break-inside: avoid !important;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid !important;
+            }
+            /* Convertir bordes y sombras para impresión */
+            .border { border-color: #eee !important; }
+            .shadow-2xl, .shadow-xl { box-shadow: none !important; }
+            
+            /* Logo para el PDF */
+            .print-header {
+                display: flex !important;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 40px;
+                border-bottom: 2px solid #525252;
+                padding-bottom: 20px;
+            }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.4/",
+    "react": "https://esm.sh/react@^19.2.4",
+    "@google/genai": "https://esm.sh/@google/genai@^1.40.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.4/"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+</body>
+</html>

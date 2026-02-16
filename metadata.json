@@ -1,0 +1,7 @@
+{
+  "name": "MÉTODO ATHLETIC",
+  "description": "App oficial de gestión técnica del Athletic Club para el seguimiento de plantillas, jugadores e informes técnicos en Lezama.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
