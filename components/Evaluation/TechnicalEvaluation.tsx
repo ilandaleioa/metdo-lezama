@@ -130,4 +130,54 @@ const TechnicalEvaluation: React.FC<{ playerId?: string }> = ({ playerId }) => {
           <h2 className="text-4xl font-[1000] text-white tracking-tighter uppercase italic leading-none">FORMULARIO <span className="text-[#EE2523]">TÉCNICO 360</span></h2>
           <p className="text-white/40 text-[11px] font-black uppercase tracking-[0.4em] mt-2">Métricas Integrales de Rendimiento y Actitud</p>
         </div>
-        <div className="bg-[#EE2523]/10 px-6 py-3 rounded-full border border-[#EE
+        <div className="bg-[#EE2523]/10 px-6 py-3 rounded-full border border-[#EE2523]/30">
+           <span className="text-[#EE2523] font-black text-[11px] uppercase tracking-widest">NOTA MEDIA GLOBAL: <span className="text-white ml-2">{average}</span></span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        <div className="space-y-4">
+           <div className="space-y-3 mb-8">
+              <label className="text-[10px] font-black text-white/40 uppercase tracking-widest ml-1">ID JUGADOR</label>
+              <select 
+                value={selectedPlayerId}
+                onChange={(e) => setSelectedPlayerId(e.target.value)}
+                className="w-full bg-black/60 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:border-[#EE2523] transition-all"
+              >
+                <option value="">ELIJA UN ACTIVO DE PLANTILLA...</option>
+                {players.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <RatingSelector label="Eficacia Técnica" value={scores.tecnica} onChange={(v:any) => setScores({...scores, tecnica: v})} />
+              <RatingSelector label="Inteligencia Táctica" value={scores.tactica} onChange={(v:any) => setScores({...scores, tactica: v})} />
+              <RatingSelector label="Capacidad Condicional" value={scores.condicional} onChange={(v:any) => setScores({...scores, condicional: v})} />
+              <RatingSelector label="Disponibilidad" value={scores.disponibilidad} onChange={(v:any) => setScores({...scores, disponibilidad: v})} />
+              <RatingSelector label="Rendimiento" value={scores.rendimiento} onChange={(v:any) => setScores({...scores, rendimiento: v})} />
+              <RatingSelector label="Compañerismo" value={scores.companerismo} onChange={(v:any) => setScores({...scores, companerismo: v})} />
+           </div>
+        </div>
+
+        <div className="flex flex-col gap-10 sticky top-8">
+           <RadarChart />
+           <button 
+            onClick={handleSave}
+            disabled={isSaving || !selectedPlayerId}
+            className="w-full bg-white text-black py-5 rounded-2xl font-black text-[11px] uppercase tracking-[0.3em] shadow-2xl hover:scale-[1.01] active:scale-95 transition-all disabled:opacity-20 flex items-center justify-center gap-4"
+          >
+            {isSaving ? 'SINCRONIZANDO...' : 'GUARDAR EVALUACIÓN TÉCNICA >'}
+          </button>
+          
+          <div className="bg-[#111] p-6 rounded-3xl border border-white/5 border-dashed">
+            <p className="text-[9px] text-white/20 leading-relaxed font-medium uppercase tracking-widest text-center">
+              Los datos se guardarán en el expediente individual del jugador y se utilizarán para generar los informes 360 automáticos por IA.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TechnicalEvaluation;

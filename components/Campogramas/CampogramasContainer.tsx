@@ -108,18 +108,15 @@ const CampogramasContainer: React.FC = () => {
     if (!sessionName.trim()) return alert("Asigna un nombre a la sesión.");
     setIsSaving(true);
     try {
-      // Usamos el nombre en el JSON o como columna extra si existiera, 
-      // aquí lo guardamos como un registro único por nombre para este equipo
       const { error } = await supabase
         .from('campograma_assignments')
         .upsert({
           team_id: selectedTeamId,
           formation: selectedFormation,
           assignments: assignments,
-          // Guardamos el nombre dentro del JSON para recuperarlo
           metadata: { name: sessionName },
           updated_at: new Date().toISOString()
-        }, { onConflict: 'id' }); // Cambiamos a ID para permitir múltiples guardados o manejarlo por nombre
+        }, { onConflict: 'id' });
 
       if (error) throw error;
       alert(`Sesión "${sessionName}" sincronizada.`);
@@ -144,7 +141,7 @@ const CampogramasContainer: React.FC = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col animate-in fade-in duration-500 overflow-hidden -mt-8 -mx-8 bg-[#0a0a0a]">
+    <div className="h-screen flex flex-col animate-in fade-in duration-500 overflow-hidden -mt-8 -mx-8 bg-black/5">
       {/* HEADER */}
       <div className="px-8 pt-6 flex justify-between items-center shrink-0 z-50">
         <div className="flex items-center gap-6">
@@ -187,7 +184,7 @@ const CampogramasContainer: React.FC = () => {
       <div className="flex-1 flex min-h-0 relative">
          {/* CAMPO */}
          <div className="flex-1 relative overflow-hidden flex items-center justify-center p-8">
-            <div className="w-full h-full relative bg-[#1a1a1a] rounded-[60px] border-[12px] border-[#222] shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden">
+            <div className="w-full h-full relative bg-[#1a1a1a] rounded-[60px] border-[12px] border-[#222] shadow-2xl overflow-hidden">
                <div className="absolute inset-0 bg-[#11301d] opacity-90"></div>
                
                <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 pointer-events-none opacity-40 px-10 py-6">
@@ -214,7 +211,7 @@ const CampogramasContainer: React.FC = () => {
                            onClick={() => setActiveSlot(pos.id)}
                            className={`w-52 bg-[#0c0c0c]/95 border rounded-2xl overflow-hidden shadow-2xl transition-all ${isActive ? 'ring-2 ring-[#EE2523] scale-105 border-white/20' : 'border-white/5 hover:border-white/20'}`}
                         >
-                           <div className="bg-[#141414] p-2 border-b border-white/5 flex items-center justify-center">
+                           <div className="bg-white/10 p-2 border-b border-white/5 flex items-center justify-center">
                               <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">{pos.label}</span>
                            </div>
 
@@ -250,7 +247,7 @@ const CampogramasContainer: React.FC = () => {
          <div className="w-[360px] bg-[#0c0c0c] border-l border-white/5 flex flex-col shrink-0 overflow-hidden shadow-2xl relative z-50 rounded-tl-[40px]">
             <div className="p-8 border-b border-white/5">
                <h3 className="text-white font-black text-[12px] uppercase tracking-[0.25em] mb-4">Plantilla Seleccionada</h3>
-               <div className="bg-[#141414] border border-white/5 rounded-2xl p-5 border-l-4 border-l-[#EE2523]">
+               <div className="bg-white/5 border border-white/5 rounded-2xl p-5 border-l-4 border-l-[#EE2523]">
                   <p className="text-white font-black text-[11px] uppercase tracking-[0.1em]">{currentTeam?.name}</p>
                </div>
             </div>
@@ -282,10 +279,10 @@ const CampogramasContainer: React.FC = () => {
                                     onClick={() => !isDisabled && handleAssignPlayer(player)}
                                     className={`p-3 rounded-2xl border transition-all cursor-pointer group flex items-center gap-4 ${
                                        isAssignedToActive 
-                                          ? 'bg-[#1a1a1a] border-[#EE2523] shadow-lg' 
+                                          ? 'bg-white/10 border-[#EE2523] shadow-lg' 
                                           : isDisabled
                                              ? 'opacity-20 cursor-not-allowed grayscale border-transparent pointer-events-none'
-                                             : 'bg-[#141414] border-white/5 hover:bg-[#1a1a1a]'
+                                             : 'bg-white/5 border-white/5 hover:bg-white/10'
                                     }`}
                                  >
                                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-all ${isAssignedToActive ? 'bg-[#EE2523] text-white shadow-[0_0_15px_rgba(238,37,35,0.4)]' : 'bg-black text-white/20 group-hover:text-white'}`}>

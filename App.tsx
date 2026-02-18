@@ -20,65 +20,107 @@ import LiveTaggingContainer from './components/LiveTagging/LiveTaggingContainer'
 import IntegralContainer from './components/Integral/IntegralContainer';
 import TechnicalEvaluation from './components/Evaluation/TechnicalEvaluation';
 import ClothingForm from './components/Forms/ClothingForm';
+import Login from './components/Auth/Login';
 import { ViewType } from './types';
 import { supabase, isSupabaseConfigured } from './lib/supabase';
-
-const ComingSoon: React.FC<{ title: string }> = ({ title }) => (
-  <div className="h-full flex items-center justify-center animate-in fade-in duration-700">
-    <div className="bg-[#1a1a1a] border border-white/5 rounded-[48px] p-20 text-center max-w-2xl shadow-2xl relative overflow-hidden group">
-      <div className="absolute inset-0 bg-gradient-to-tr from-[#EE2523]/5 via-transparent to-transparent"></div>
-      <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8 group-hover:scale-110 transition-transform duration-500">
-        <svg className="w-10 h-10 text-[#EE2523]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
-          <path d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-        </svg>
-      </div>
-      <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4">{title}</h2>
-      <div className="flex items-center justify-center gap-4 mb-8">
-        <div className="h-px w-8 bg-[#EE2523]"></div>
-        <span className="text-[#EE2523] text-[10px] font-black uppercase tracking-[0.5em]">Próximamente</span>
-        <div className="h-px w-8 bg-[#EE2523]"></div>
-      </div>
-      <p className="text-white/40 text-sm leading-relaxed font-medium">
-        Estamos integrando este módulo con la base de datos central de Lezama 25/26. <br/>Estará disponible en la próxima actualización de la Suite Técnica.
-      </p>
-    </div>
-  </div>
-);
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewType>('HOME');
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | undefined>(undefined);
   const [session, setSession] = useState<any>(null);
+  const [isInitializing, setIsInitializing] = useState(true);
+  const [isLightMode, setIsLightMode] = useState(localStorage.getItem('lezama-theme') === 'light');
+  const [language, setLanguage] = useState(localStorage.getItem('lezama-lang') || 'ES');
 
   useEffect(() => {
-    const initApp = async () => {
-      const isDemo = localStorage.getItem('lezama_demo_mode') === 'true';
-      if (isDemo || (!isSupabaseConfigured)) {
-         setSession({ user: { email: 'invitado@lezama.demo' } });
-      } else {
-         const { data: { session: s } } = await supabase.auth.getSession();
-         setSession(s);
+    // Sincronizar clase global con el body para overrides de CSS
+    if (isLightMode) {
+      document.body.classList.add('light-mode');
+    } else {
+      document.body.classList.remove('light-mode');
+    }
+  }, [isLightMode]);
+
+  useEffect(() => {
+    if (!localStorage.getItem('sb-cplqwpcyhrploarxgyxj-auth-token')) {
+        localStorage.removeItem('lezama_demo_mode');
+    }
+
+    const checkAuth = async () => {
+      try {
+        if (!isSupabaseConfigured) {
+          setSession(null);
+          setIsInitializing(false);
+          return;
+        }
+
+        const { data: { session: currentSession }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setSession(currentSession);
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+          setSession(newSession);
+          if (!newSession) localStorage.clear();
+        });
+
+        setIsInitializing(false);
+        return () => subscription.unsubscribe();
+      } catch (err) {
+        console.error("Security Fault:", err);
+        setSession(null);
+        setIsInitializing(false);
       }
     };
-    initApp();
+
+    checkAuth();
   }, []);
+
+  const toggleTheme = () => {
+    const newMode = !isLightMode;
+    setIsLightMode(newMode);
+    localStorage.setItem('lezama-theme', newMode ? 'light' : 'dark');
+  };
+
+  const changeLanguage = (lang: string) => {
+    setLanguage(lang);
+    localStorage.setItem('lezama-lang', lang);
+  };
+
+  if (isInitializing) {
+    return (
+      <div className={`h-screen w-screen flex items-center justify-center transition-colors duration-500 ${isLightMode ? 'bg-[#f3f4f6]' : 'bg-[#0a0a0a]'}`}>
+        <div className="flex flex-col items-center gap-6">
+          <div className={`w-10 h-10 border-2 border-t-[#EE2523] rounded-full animate-spin ${isLightMode ? 'border-gray-200' : 'border-white/5'}`}></div>
+          <div className="text-center">
+            <p className={`${isLightMode ? 'text-gray-400' : 'text-white/40'} font-black text-[9px] uppercase tracking-[0.4em]`}>
+              {language === 'EU' ? 'Lezama Clouden Autentikatzen' : 
+               language === 'EN' ? 'Authenticating Lezama Cloud' : 
+               language === 'FR' ? 'Authentification Lezama Cloud' : 
+               'Autenticando en Lezama Cloud'}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session?.user) {
+    return <Login />;
+  }
 
   const renderContent = () => {
     switch (currentView) {
-      case 'HOME': return <Dashboard onNavigate={setCurrentView} />;
-      case 'PLANTILLAS': return <SquadsContainer onNavigateToPlayer={(id) => { setSelectedPlayerId(id); setCurrentView('JUGADOR'); }} />;
+      case 'HOME': return <Dashboard onNavigate={setCurrentView} language={language} />;
+      case 'PLANTILLAS': return <SquadsContainer onNavigateToPlayer={(id) => { setSelectedPlayerId(id); setCurrentView('JUGADOR'); }} language={language} />;
       case 'JUGADOR': return <PlayerView playerId={selectedPlayerId} onBack={() => setCurrentView('HOME')} />;
       case 'ENTRENADOR': return <CoachView />;
       case 'EQUIPO': return <TeamView />;
       case 'VIDEOTECA': return <VideotecaContainer />;
       case 'VIDEOLAB': return <VideoLabContainer />;
-      case 'CAN_TECNICOS': return <CoachView />;
-      case 'CAN_INTERVENCIONES': return <ComingSoon title="DESARROLLO CAN: INTERVENCIONES" />;
       case 'RENDIMIENTO_TESTS': return <PerformanceContainer initialTab="FISICO" />;
       case 'RENDIMIENTO_NUTRICION': return <PerformanceContainer initialTab="NUTRICION" />;
       case 'LESIONES': return <PerformanceContainer initialTab="MEDICO" />;
-      case 'SESIONES': return <ActivitiesCalendar />;
-      case 'TAREAS': return <ComingSoon title="GESTIÓN DE TAREAS" />;
+      case 'ACTIVIDADES': return <ActivitiesCalendar />;
       case 'PARTIDOS': return <MatchesContainer />;
       case 'COMP_PARTIDOS': return <MatchesContainer />;
       case 'COMP_STATS': return <MatchAnalyticsDemo />;
@@ -87,22 +129,25 @@ const App: React.FC = () => {
       case 'DESIGNER': return <DesignerContainer />;
       case 'ABP': return <ABPContainer />;
       case 'LIVE_TAGGING': return <LiveTaggingContainer />;
-      case 'EVALUACIONES': return <ComingSoon title="EVALUACIONES GENERALES" />;
       case 'EVALUACION_TECNICA': return <TechnicalEvaluation playerId={selectedPlayerId} />;
       case 'TALLAJE_FORM': return <ClothingForm />;
       case 'ATENCION_ACADEMICO': return <IntegralContainer view="ATENCION_ACADEMICO" />;
       case 'ATENCION_RESIDENCIA': return <IntegralContainer view="ATENCION_RESIDENCIA" />;
       case 'ATENCION_BASERRI': return <IntegralContainer view="ATENCION_BASERRI" />;
-      default: return <Dashboard onNavigate={setCurrentView} />;
+      default: return <Dashboard onNavigate={setCurrentView} language={language} />;
     }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#121212]">
+    <div className={`flex h-screen overflow-hidden transition-colors duration-500`}>
       <Layout 
         currentView={currentView}
         setView={setCurrentView}
         onLogoClick={() => setCurrentView('HOME')}
+        isLightMode={isLightMode}
+        onToggleTheme={toggleTheme}
+        language={language}
+        onLanguageChange={changeLanguage}
       >
         {renderContent()}
       </Layout>

@@ -1,63 +1,56 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.7';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const getEnv = (key: string) => {
+  return (window as any).process?.env?.[key] || '';
+};
 
-// Validación de configuración para evitar errores en tiempo de ejecución
+const supabaseUrl = getEnv('NEXT_PUBLIC_SUPABASE_URL');
+const supabaseAnonKey = getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY');
+
 export const isSupabaseConfigured = !!(
   supabaseUrl && 
   supabaseAnonKey && 
-  supabaseUrl !== 'https://placeholder.supabase.co' && 
-  supabaseUrl.length > 20
+  supabaseUrl.includes('supabase.co')
 );
 
-// Cliente con configuración de persistencia y manejo de sesión
 export const supabase = createClient(
-  supabaseUrl, 
-  supabaseAnonKey,
+  supabaseUrl || 'https://placeholder.supabase.co', 
+  supabaseAnonKey || 'placeholder',
   {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
-      detectSessionInUrl: true
-    },
-    global: {
-      headers: { 'x-application-name': 'lezama-technical-suite' }
+      detectSessionInUrl: true,
+      storage: window.localStorage
     }
   }
 );
 
 /**
- * Test de conectividad avanzado para el Health Check de la infraestructura
+ * Cierra la sesión en el dispositivo actual y en todos los demás.
+ * Limpia el rastro de almacenamiento local.
  */
-export const testSupabaseConnection = async (): Promise<{ success: boolean; message: string }> => {
-  if (!isSupabaseConfigured) {
-    return { success: false, message: "INFRAESTRUCTURA: CONFIGURACIÓN PENDIENTE" };
-  }
-
+export const signOutGlobally = async () => {
   try {
-    // Timeout de 5 segundos para no bloquear el arranque
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-    const { error } = await supabase
-      .from('players')
-      .select('id')
-      .limit(1)
-      .abortSignal(controller.signal);
+    // 1. Sign out de Supabase (Global invalida todos los tokens en el servidor)
+    await supabase.auth.signOut({ scope: 'global' });
     
-    clearTimeout(timeoutId);
+    // 2. Limpieza agresiva de almacenamiento
+    localStorage.clear();
+    sessionStorage.clear();
     
-    if (error) {
-      // Manejo específico de errores de base de datos
-      if (error.code === 'PGRST301') return { success: false, message: "ERROR: JWT / ANON_KEY INVÁLIDO" };
-      if (error.code === '42P01') return { success: true, message: "AVISO: TABLAS NO MIGRADAS" };
-      return { success: false, message: `API ERROR: ${error.message}` };
-    }
+    // 3. Cookies (opcional pero recomendado para tokens persistentes)
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
 
-    return { success: true, message: "CLOUD: CONEXIÓN ESTABLE" };
-  } catch (e: any) {
-    return { success: false, message: "RED: FALLO DE CONEXIÓN O CORS" };
+    console.log("Sesiones invalidadas globalmente.");
+    window.location.href = '/'; // Redirección forzada
+  } catch (error) {
+    console.error("Error en cierre global:", error);
+    window.location.reload();
   }
 };

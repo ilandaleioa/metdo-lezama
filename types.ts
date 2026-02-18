@@ -80,6 +80,7 @@ export type ViewType =
   | 'EQUIPO'
   | 'PARTIDOS'
   | 'SESIONES'
+  | 'ACTIVIDADES'
   | 'TAREAS'
   | 'ABP'
   | 'LIVE_TAGGING'

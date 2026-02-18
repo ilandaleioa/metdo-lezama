@@ -15,12 +15,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
     
     <script>
-      // Inyección segura de variables de entorno para producción
       window.process = { 
         env: {
           NEXT_PUBLIC_SUPABASE_URL: "https://cplqwpcyhrploarxgyxj.supabase.co",
           NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwbHF3cGN5aHJwbG9hcnhneXhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MjExNjUsImV4cCI6MjA4NjM5NzE2NX0.zoEjyKY7oDiTwnrx805vPDonSA8p95yZiVB4e5n3-tA",
-          API_KEY: "" // Se inyecta vía Secret Manager en Cloud Run
+          API_KEY: ""
         } 
       };
     </script>
@@ -31,11 +30,11 @@
             color: #FFFFFF;
             -webkit-font-smoothing: antialiased;
             overflow-x: hidden;
+            transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.3s ease;
         }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0a0a0a; }
         ::-webkit-scrollbar-thumb { background: #525252; border-radius: 10px; }
-        
         .scrollbar-hide::-webkit-scrollbar { display: none; }
         
         @keyframes fadeIn {
@@ -44,67 +43,136 @@
         }
         .animate-in { animation: fadeIn 0.4s ease-out forwards; }
 
-        /* ESTILOS DE IMPRESIÓN PARA PDF */
+        /* ==========================================================================
+           MODO CLARO - MOTOR UNIVERSAL DE SOBRESCRITURA TOTAL
+           ========================================================================== */
+        
+        .light-mode {
+            background-color: #f3f4f6 !important;
+            color: #0f172a !important;
+        }
+
+        /* 1. Inversión Absoluta de Fondos (Deep Darks to Pure White/Light) */
+        .light-mode .bg-\[\#050505\],
+        .light-mode .bg-\[\#080808\], 
+        .light-mode .bg-\[\#0a0a0a\], 
+        .light-mode .bg-\[\#0c0c0c\], 
+        .light-mode .bg-\[\#0d0d0d\],
+        .light-mode .bg-\[\#0f0f0f\],
+        .light-mode .bg-\[\#111111\],
+        .light-mode .bg-\[\#121212\],
+        .light-mode .bg-\[\#141414\],
+        .light-mode .bg-\[\#161616\],
+        .light-mode .bg-\[\#1a1a1a\],
+        .light-mode .bg-\[\#1a1a23\],
+        .light-mode .bg-\[\#1a3151\],
+        .light-mode .bg-black,
+        .light-mode .bg-black\/90,
+        .light-mode .bg-black\/80,
+        .light-mode .bg-black\/60,
+        .light-mode .bg-black\/50,
+        .light-mode .bg-black\/40,
+        .light-mode .bg-black\/20,
+        .light-mode aside,
+        .light-mode main,
+        .light-mode .sticky {
+            background-color: #ffffff !important;
+        }
+
+        /* 2. Inversión de Tarjetas Específicas (Slight Gray for contrast) */
+        .light-mode .bg-\[\#2a2a2a\],
+        .light-mode .bg-\[\#2d3544\],
+        .light-mode .bg-\[\#3f4756\] {
+            background-color: #f8f9fa !important;
+            border: 1px solid rgba(0,0,0,0.08) !important;
+        }
+
+        /* 3. Textos - Inversión Global */
+        .light-mode .text-white,
+        .light-mode h1, .light-mode h2, .light-mode h3, .light-mode h4, .light-mode h5,
+        .light-mode .text-white\/90,
+        .light-mode .group-hover\:text-white:hover {
+            color: #0f172a !important;
+        }
+        
+        .light-mode .text-white\/80, 
+        .light-mode .text-white\/60,
+        .light-mode .text-gray-400,
+        .light-mode .text-white\/50 {
+            color: #334155 !important;
+        }
+        
+        .light-mode .text-white\/40, 
+        .light-mode .text-white\/30, 
+        .light-mode .text-white\/20,
+        .light-mode .text-white\/10 {
+            color: #64748b !important;
+        }
+
+        /* 4. Transparencias Claras */
+        .light-mode .bg-white\/5, 
+        .light-mode .bg-white\/10,
+        .light-mode .bg-white\/20,
+        .light-mode .bg-white\/\[0\.02\], 
+        .light-mode .bg-white\/\[0\.03\],
+        .light-mode .bg-white\/\[0\.05\],
+        .light-mode .bg-white\/\[0\.01\] {
+            background-color: rgba(0, 0, 0, 0.04) !important;
+        }
+
+        /* 5. Bordes */
+        .light-mode .border-white\/5,
+        .light-mode .border-white\/10,
+        .light-mode .border-white\/20,
+        .light-mode .border-gray-200,
+        .light-mode .border-white\/\[0\.05\] {
+            border-color: rgba(0, 0, 0, 0.08) !important;
+        }
+
+        /* 6. Inputs y Selects */
+        .light-mode input, .light-mode select, .light-mode textarea {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+            border: 1px solid #e2e8f0 !important;
+        }
+        
+        .light-mode .bg-\[\#1a1a1a\]:has(button),
+        .light-mode .bg-\[\#1a1a1a\]\/95,
+        .light-mode .bg-gray-100 {
+            background-color: #f1f5f9 !important;
+        }
+
+        /* 7. Hover States */
+        .light-mode .hover\:bg-white\/5:hover, 
+        .light-mode .hover\:bg-white\/10:hover,
+        .light-mode .hover\:bg-black\/5:hover,
+        .light-mode .group:hover {
+            background-color: rgba(0, 0, 0, 0.02) !important;
+        }
+
+        /* 8. Campos Tácticos (Preservar color verde pero limpiar marco) */
+        .light-mode .border-\[12px\].border-\[\#222\],
+        .light-mode .border-\[16px\].border-\[\#262626\],
+        .light-mode .border-\[8px\].border-\[\#2a2a2a\],
+        .light-mode .border-\[15px\].border-\[\#0a1f13\] {
+            border-color: #e2e8f0 !important;
+        }
+        
+        .light-mode .bg-\[\#11301d\] {
+            background-color: #11301d !important; /* Mantener verde césped */
+        }
+
+        /* 9. Sombras */
+        .light-mode .shadow-2xl, 
+        .light-mode .shadow-\[0_0_100px_rgba\(0,0,0,0.8\)\],
+        .light-mode .shadow-xl {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        }
+
         @media print {
-            body {
-                background: white !important;
-                color: black !important;
-                padding: 0 !important;
-                margin: 0 !important;
-            }
-            #root > div {
-                display: block !important;
-                height: auto !important;
-            }
-            /* Ocultar barra lateral y UI de navegación */
-            aside, .fixed, .sticky, nav, .lg\:static, .shrink-0.border-r, 
-            button.print\:hidden, .bg-\[\#525252\], .bg-white\/5 {
-                display: none !important;
-            }
-            /* Ajustar contenedores principales */
-            main {
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-                display: block !important;
-                width: 100% !important;
-                background: white !important;
-            }
-            .lg\:hidden, .hidden.md\:block, .fixed.top-6 {
-                display: none !important;
-            }
-            /* Asegurar que el contenido use todo el ancho */
-            .w-full.min-h-full.p-4.md\:p-8 {
-                padding: 0 !important;
-                margin: 0 !important;
-                width: 100% !important;
-            }
-            /* Forzar colores en PDF */
-            .print\:text-black { color: black !important; }
-            .print\:bg-white { background: white !important; }
-            .print\:bg-gray-50 { background: #f9fafb !important; }
-            .print\:border-gray-200 { border-color: #e5e7eb !important; }
-            
-            /* Saltos de página inteligentes */
-            .print\:page-break-inside-avoid {
-                page-break-inside: avoid !important;
-            }
-            h1, h2, h3 {
-                page-break-after: avoid !important;
-            }
-            /* Convertir bordes y sombras para impresión */
-            .border { border-color: #eee !important; }
-            .shadow-2xl, .shadow-xl { box-shadow: none !important; }
-            
-            /* Logo para el PDF */
-            .print-header {
-                display: flex !important;
-                justify-content: space-between;
-                align-items: center;
-                margin-bottom: 40px;
-                border-bottom: 2px solid #525252;
-                padding-bottom: 20px;
-            }
+            body { background: white !important; color: black !important; }
+            aside, .fixed, .sticky, button.print\:hidden { display: none !important; }
+            main { margin: 0 !important; padding: 0 !important; width: 100% !important; background: white !important; }
         }
     </style>
 <script type="importmap">

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { TEAMS, MOCK_PLAYERS } from '../../constants';
 import { Player } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { translations } from '../../translations';
 import ReportsContainer from '../Reports/ReportsContainer';
 import TrackingContainer from '../Tracking/TrackingContainer';
 import VideotecaContainer from '../Videoteca/VideotecaContainer';
@@ -27,12 +28,17 @@ const STANDINGS_DATA: Record<string, any[]> = {
   ]
 };
 
-const TeamView: React.FC = () => {
+const MOCK_TEAM_MATCHES = [
+  { id: 'm1', date: '09 FEB', time: '12:00', local: 'Bilbao Athletic', visitor: 'Barakaldo CF', score: '2-1', stadium: 'Lezama (C2)', status: 'FINALIZADO', type: 'LIGA', system: '1-4-3-3' },
+  { id: 'm2', date: '02 FEB', time: '18:00', local: 'Cultural Leonesa', visitor: 'Bilbao Athletic', score: '0-0', stadium: 'Reino de León', status: 'FINALIZADO', type: 'LIGA', system: '1-4-2-3-1' },
+];
+
+const TeamView: React.FC<{ language?: string }> = ({ language = 'ES' }) => {
+  const t = translations[language] || translations['ES'];
   const [selectedTeam, setSelectedTeam] = useState(TEAMS[0]?.id || '2');
   const [activeSubTab, setActiveSubTab] = useState<TeamSubTab>('PLANTILLAS');
   const [activeCompTab, setActiveCompTab] = useState<CompInnerTab>('CLASIFICACION');
   const [players, setPlayers] = useState<Player[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
@@ -56,10 +62,10 @@ const TeamView: React.FC = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex bg-white/5 p-1 rounded-2xl border border-white/5 w-full md:w-fit overflow-x-auto scrollbar-hide">
             {[
-              { id: 'CLASIFICACION', label: 'CLASIFICACIÓN' },
-              { id: 'PARTIDOS', label: 'PARTIDOS' },
-              { id: 'RESULTADOS', label: 'RESULTADOS' },
-              { id: 'CALENDARIO', label: 'CALENDARIO' }
+              { id: 'CLASIFICACION', label: language === 'EU' ? 'SAILKAPENA' : 'CLASIFICACIÓN' },
+              { id: 'PARTIDOS', label: language === 'EU' ? 'HURRENGOAK' : 'PRÓXIMOS' },
+              { id: 'RESULTADOS', label: language === 'EU' ? 'EMAITZAK' : 'RESULTADOS' },
+              { id: 'CALENDARIO', label: language === 'EU' ? 'EGUTEGIA' : 'CALENDARIO' }
             ].map(tab => (
               <button
                 key={tab.id}
@@ -70,19 +76,13 @@ const TeamView: React.FC = () => {
               </button>
             ))}
           </div>
-          
-          <div className="hidden md:flex items-center gap-3 bg-black/40 px-4 py-2 rounded-xl border border-white/5">
-             <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Temporada Actual</span>
-             <div className="h-4 w-px bg-white/10 mx-1"></div>
-             <span className="text-[10px] font-black text-[#EE2523] uppercase">2024 / 2025</span>
-          </div>
         </div>
 
-        {activeCompTab === 'CLASIFICACION' ? (
+        {activeCompTab === 'CLASIFICACION' && (
           <div className="bg-[#111111] border border-white/5 rounded-[32px] overflow-hidden shadow-2xl">
             <div className="p-8 border-b border-white/5 bg-black/20 flex justify-between items-center">
                <div>
-                  <h3 className="text-xl font-black text-white uppercase italic tracking-tight">Tabla de Clasificación</h3>
+                  <h3 className="text-xl font-black text-white uppercase italic tracking-tight">{language === 'EU' ? 'Sailkapen Taula' : 'Tabla de Clasificación'}</h3>
                   <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mt-1">{teamName} • {TEAMS.find(t => t.id === selectedTeam)?.category}</p>
                </div>
             </div>
@@ -91,55 +91,31 @@ const TeamView: React.FC = () => {
                 <thead className="bg-[#0a0a0a] text-white/30 text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5">
                   <tr>
                     <th className="px-8 py-5 text-center w-20">#</th>
-                    <th className="px-2 py-5">Equipo</th>
+                    <th className="px-2 py-5">{language === 'EU' ? 'TALDEA' : 'EQUIPO'}</th>
                     <th className="px-4 py-5 text-center">PJ</th>
                     <th className="px-2 py-5 text-center">G</th>
                     <th className="px-2 py-5 text-center">E</th>
                     <th className="px-2 py-5 text-center">P</th>
-                    <th className="px-6 py-5 text-center">Forma</th>
                     <th className="px-8 py-5 text-center font-black text-[#EE2523]">Pts</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {standings.map((team, idx) => {
-                    const isOurTeam = team.name.includes('Athletic') || team.name.includes('Basconia');
-                    return (
-                      <tr key={idx} className={`group hover:bg-white/[0.02] transition-colors ${isOurTeam ? 'bg-[#EE2523]/5' : ''}`}>
-                        <td className="px-8 py-5 text-center font-black text-xs text-white/40 group-hover:text-white">{team.pos}</td>
-                        <td className="px-2 py-5">
-                          <div className="flex items-center gap-4">
-                             <div className={`w-8 h-8 rounded-lg bg-black border border-white/10 p-1.5 flex items-center justify-center ${isOurTeam ? 'border-[#EE2523]' : ''}`}>
-                                <img src="https://upload.wikimedia.org/wikipedia/en/thumb/9/98/Club_Athletic_Bilbao_logo.svg/1200px-Club_Athletic_Bilbao_logo.svg.png" className={`w-full h-full object-contain ${!isOurTeam ? 'grayscale' : ''}`} alt="" />
-                             </div>
-                             <span className={`text-sm font-bold uppercase tracking-tight ${isOurTeam ? 'text-white' : 'text-white/60'}`}>{team.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-5 text-center text-xs font-bold text-white/40">{team.pj}</td>
-                        <td className="px-2 py-5 text-center text-xs text-white/40">{team.g}</td>
-                        <td className="px-2 py-5 text-center text-xs text-white/40">{team.e}</td>
-                        <td className="px-2 py-5 text-center text-xs text-white/40">{team.p}</td>
-                        <td className="px-6 py-5 text-center">
-                          <div className="flex justify-center gap-1">
-                             {team.form.map((r: string, i: number) => (
-                               <div key={i} className={`w-2 h-2 rounded-full ${r === 'W' ? 'bg-green-500' : r === 'D' ? 'bg-yellow-500' : 'bg-red-500'} opacity-60`}></div>
-                             ))}
-                          </div>
-                        </td>
-                        <td className="px-8 py-5 text-center"><span className={`text-base font-black ${isOurTeam ? 'text-[#EE2523]' : 'text-white'}`}>{team.pts}</span></td>
-                      </tr>
-                    );
-                  })}
+                  {standings.map((team, idx) => (
+                    <tr key={idx} className="group hover:bg-white/[0.02] transition-colors">
+                      <td className="px-8 py-5 text-center font-black text-xs text-white/40 group-hover:text-white">{team.pos}</td>
+                      <td className="px-2 py-5">
+                         <span className="text-sm font-bold uppercase tracking-tight text-white/60">{team.name}</span>
+                      </td>
+                      <td className="px-4 py-5 text-center text-xs font-bold text-white/40">{team.pj}</td>
+                      <td className="px-2 py-5 text-center text-xs text-white/40">{team.g}</td>
+                      <td className="px-2 py-5 text-center text-xs text-white/40">{team.e}</td>
+                      <td className="px-2 py-5 text-center text-xs text-white/40">{team.p}</td>
+                      <td className="px-8 py-5 text-center"><span className="text-base font-black text-white">{team.pts}</span></td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
-          </div>
-        ) : (
-          <div className="bg-[#111111] border border-white/5 rounded-[40px] flex flex-col items-center justify-center p-24 shadow-2xl">
-             <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                <svg className="w-10 h-10 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-             </div>
-             <h4 className="text-white/40 font-black text-xs uppercase tracking-[0.5em]">Módulo {activeCompTab}</h4>
-             <p className="text-white/20 text-[10px] font-bold uppercase tracking-[0.2em] mt-3">Consultando registros históricos en Lezama Cloud...</p>
           </div>
         )}
       </div>
@@ -151,12 +127,14 @@ const TeamView: React.FC = () => {
       <div className="flex flex-col space-y-6">
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
           <div>
-            <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">GESTIÓN <span className="text-[#EE2523]">EQUIPO</span></h2>
-            <p className="text-white/40 text-[11px] font-black uppercase tracking-[0.4em] mt-2">Dossier Técnico y Control de Activos</p>
+            <h2 className="text-4xl font-black text-white tracking-tighter uppercase italic leading-none">
+              {language === 'EU' ? 'TALDEAREN' : 'GESTIÓN'} <span className="text-[#EE2523]">{language === 'EU' ? 'KUDEAKETA' : 'EQUIPO'}</span>
+            </h2>
+            <p className="text-white/40 text-[11px] font-black uppercase tracking-[0.4em] mt-2">{language === 'EU' ? 'Dossier Teknikoa eta Aktiboen Kontrola' : 'Dossier Técnico y Control de Activos'}</p>
           </div>
           <div className="flex bg-[#1a1a1a] p-1 rounded-xl border border-white/10 shadow-xl">
              <div className="px-4 py-2 flex items-center gap-3">
-                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">Activo:</span>
+                <span className="text-[10px] font-black text-white/30 uppercase tracking-widest">{t.team_active}:</span>
                 <select value={selectedTeam} onChange={(e) => setSelectedTeam(e.target.value)} className="bg-transparent text-white text-[11px] font-black uppercase tracking-widest outline-none cursor-pointer">
                    {TEAMS.map(t => <option key={t.id} value={t.id} className="bg-[#1a1a1a]">{t.name}</option>)}
                 </select>
@@ -166,15 +144,15 @@ const TeamView: React.FC = () => {
 
         <div className="flex bg-[#1a1a1a] p-1.5 rounded-[24px] border border-white/5 shadow-2xl w-full overflow-x-auto scrollbar-hide">
             {[
-                { id: 'PLANTILLAS', label: 'PLANTILLAS' },
-                { id: 'CAMPOGRAMAS', label: 'CAMPOGRAMAS' },
-                { id: 'PERFORMANCE', label: 'RENDIMIENTO' },
-                { id: 'COMPETICION', label: 'COMPETICIÓN' },
-                { id: 'ESTADISTICAS', label: 'ESTADÍSTICAS' },
-                { id: 'NUTRICION', label: 'NUTRICIÓN' },
-                { id: 'EVALUACIONES', label: 'EVALUACIONES' },
-                { id: 'DATAHUB', label: 'DATAHUB VIDEO' },
-                { id: 'VIDEOTECA', label: 'VIDEOTECA' }
+                { id: 'PLANTILLAS', label: t.team_tab_squads },
+                { id: 'CAMPOGRAMAS', label: t.team_tab_campogramas },
+                { id: 'PERFORMANCE', label: t.team_tab_performance },
+                { id: 'COMPETICION', label: t.team_tab_competition },
+                { id: 'ESTADISTICAS', label: t.team_tab_stats },
+                { id: 'NUTRICION', label: t.team_tab_nutrition },
+                { id: 'EVALUACIONES', label: t.team_tab_evaluations },
+                { id: 'DATAHUB', label: t.team_tab_datahub },
+                { id: 'VIDEOTECA', label: t.team_tab_videoteca }
             ].map((tab) => (
                 <button 
                     key={tab.id}
@@ -188,16 +166,16 @@ const TeamView: React.FC = () => {
       </div>
 
       <div className="mt-4">
-          {activeSubTab === 'PLANTILLAS' && <SquadsContainer onNavigateToPlayer={(id) => { setSelectedPlayerId(id); setActiveSubTab('EVALUACIONES'); }} />}
+          {activeSubTab === 'PLANTILLAS' && <SquadsContainer onNavigateToPlayer={(id) => { setSelectedPlayerId(id); setActiveSubTab('EVALUACIONES'); }} language={language} />}
           {activeSubTab === 'CAMPOGRAMAS' && <CampogramasContainer />}
-          {activeSubTab === 'ESTADISTICAS' && <MatchAnalyticsDemo />}
+          {activeSubTab === 'ESTADISTICAS' && <MatchAnalyticsDemo language={language} />}
           {activeSubTab === 'COMPETICION' && <CompetitionView />}
-          {activeSubTab === 'PERFORMANCE' && <PerformanceContainer initialTab="FISICO" />}
+          {activeSubTab === 'PERFORMANCE' && <PerformanceContainer playerId={undefined} initialTab="FISICO" />}
           {activeSubTab === 'EVALUACIONES' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                   {selectedPlayerId ? <TrackingContainer playerId={selectedPlayerId} teamId={selectedTeam} /> : (
                       <div className="text-center py-20 bg-[#111] rounded-[32px] border border-white/5">
-                        <p className="text-white/20 font-black uppercase tracking-widest text-[10px]">Selecciona un jugador en Plantillas para evaluar</p>
+                        <p className="text-white/20 font-black uppercase tracking-widest text-[10px]">{language === 'EU' ? 'Aukeratu jokalari bat Plantillan ebaluatzeko' : 'Selecciona un jugador en Plantillas para evaluar'}</p>
                       </div>
                   )}
               </div>

@@ -6,14 +6,15 @@ import PlayerCard from './PlayerCard';
 import AddPlayerForm from './AddPlayerForm';
 import { Team, Player, AvailabilityStatus } from '../../types';
 import { supabase } from '../../lib/supabase';
+import { translations } from '../../translations';
 
-const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => void }> = ({ onNavigateToPlayer }) => {
+const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => void, language?: string }> = ({ onNavigateToPlayer, language = 'ES' }) => {
+  const t = translations[language] || translations['ES'];
   const [selectedTeam, setSelectedTeam] = useState<Team>(TEAMS[0]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<Player | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
-  // Cambiado de 'TABLE' a 'GRID' por defecto
   const [viewMode, setViewMode] = useState<'TABLE' | 'GRID'>('GRID');
 
   // Estados de Filtros
@@ -54,13 +55,11 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
     return '-';
   };
 
-  // Opciones únicas de años para el filtro basándose en la plantilla actual
   const yearsOptions = useMemo(() => {
     const yrs = players.map(p => getYearFromDate(p.birth_date || p.birthDate)).filter(y => y !== '-');
     return Array.from(new Set(yrs)).sort((a: string, b: string) => b.localeCompare(a));
   }, [players]);
 
-  // Lógica de Filtrado
   const filteredPlayers = useMemo(() => {
     return players.filter(p => {
       const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -93,7 +92,7 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
 
   const handleDeletePlayer = async (e: React.MouseEvent, player: Player) => {
     e.stopPropagation();
-    if (confirm(`¿Eliminar a ${player.name} de la base de datos?`)) {
+    if (confirm(`¿Eliminar a ${player.name} de la base de datos? / ${player.name} datu-basetik ezabatu?`)) {
       const { error } = await supabase.from('players').delete().eq('id', player.id);
       if (!error) fetchPlayers();
     }
@@ -127,8 +126,8 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
     <div className="space-y-6 animate-in slide-in-from-bottom-4 duration-500 pb-12">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight italic">Plantillas <span className="text-[#EE2523]">Maestras</span></h2>
-          <p className="text-white/50 text-[10px] md:text-sm mt-1 uppercase tracking-widest font-medium">Gestión Directa de Lezama Cloud</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tight italic">{t.squad_title.split(' ')[0]} <span className="text-[#EE2523]">{t.squad_title.split(' ')[1]}</span></h2>
+          <p className="text-white/50 text-[10px] md:text-sm mt-1 uppercase tracking-widest font-medium">{t.squad_subtitle}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center space-x-1 bg-[#1a1a1a] p-1 rounded-xl border border-white/10">
@@ -139,7 +138,7 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
             onClick={() => { setEditingPlayer(null); setShowAddForm(!showAddForm); }}
             className="bg-[#EE2523] text-white px-6 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg hover:scale-105 transition-all"
           >
-            {showAddForm ? 'Cerrar Formulario' : 'Nueva Alta'}
+            {showAddForm ? (language === 'EU' ? 'Inprimakia Itxi' : 'Cerrar Formulario') : t.squad_new}
           </button>
         </div>
       </div>
@@ -162,7 +161,7 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
             <div className="relative">
                 <input 
                   type="text" 
-                  placeholder="BUSCAR JUGADOR..."
+                  placeholder={t.squad_search}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="bg-black/40 border border-white/5 rounded-xl px-4 py-3 pl-10 text-[10px] font-black uppercase text-white outline-none focus:border-[#EE2523] transition-all w-full"
@@ -175,7 +174,7 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
               onChange={(e) => setFilterStatus(e.target.value)}
               className="bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] font-black uppercase text-white outline-none focus:border-[#EE2523] transition-all appearance-none cursor-pointer"
             >
-              <option value="ALL">DISPONIBILIDAD (TODOS)</option>
+              <option value="ALL">{t.squad_filter_status}</option>
               {Object.values(AvailabilityStatus).map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
             </select>
 
@@ -184,11 +183,11 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
               onChange={(e) => setFilterPosition(e.target.value)}
               className="bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] font-black uppercase text-white outline-none focus:border-[#EE2523] transition-all appearance-none cursor-pointer"
             >
-              <option value="ALL">DEMARCACIÓN (TODOS)</option>
-              <option value="PORTERO">PORTERO</option>
-              <option value="DEFENSA">DEFENSA</option>
-              <option value="CENTROCAMPISTA">CENTROCAMPISTA</option>
-              <option value="DELANTERO">DELANTERO</option>
+              <option value="ALL">{t.squad_filter_pos}</option>
+              <option value="PORTERO">{language === 'EU' ? 'ATEZAINA' : 'PORTERO'}</option>
+              <option value="DEFENSA">{language === 'EU' ? 'ATZELARIA' : 'DEFENSA'}</option>
+              <option value="CENTROCAMPISTA">{language === 'EU' ? 'ERDIZKARIA' : 'CENTROCAMPISTA'}</option>
+              <option value="DELANTERO">{language === 'EU' ? 'AURRELARIA' : 'DELANTERO'}</option>
             </select>
 
             <select 
@@ -196,10 +195,10 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
               onChange={(e) => setFilterLaterality(e.target.value)}
               className="bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] font-black uppercase text-white outline-none focus:border-[#EE2523] transition-all appearance-none cursor-pointer"
             >
-              <option value="ALL">LATERALIDAD (TODOS)</option>
-              <option value="Diestro">DIESTRO</option>
-              <option value="Zurdo">ZURDO</option>
-              <option value="Ambas">AMBAS</option>
+              <option value="ALL">{t.squad_filter_lat}</option>
+              <option value="Diestro">{language === 'EU' ? 'ESKUINA' : 'DIESTRO'}</option>
+              <option value="Zurdo">{language === 'EU' ? 'EZKERRA' : 'ZURDO'}</option>
+              <option value="Ambas">{language === 'EU' ? 'BIAK' : 'AMBAS'}</option>
             </select>
 
             <select 
@@ -207,7 +206,7 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
               onChange={(e) => setFilterYear(e.target.value)}
               className="bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-[10px] font-black uppercase text-white outline-none focus:border-[#EE2523] transition-all appearance-none cursor-pointer"
             >
-              <option value="ALL">AÑO (TODOS)</option>
+              <option value="ALL">{t.squad_filter_year}</option>
               {yearsOptions.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
           </div>
@@ -223,7 +222,7 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
                 }}
                 className="text-[#EE2523] text-[9px] font-black uppercase tracking-widest hover:text-white transition-colors"
               >
-                Limpiar Filtros
+                {t.squad_clean}
               </button>
             </div>
           )}
@@ -278,7 +277,7 @@ const SquadsContainer: React.FC<{ onNavigateToPlayer?: (playerId: string) => voi
 
           {filteredPlayers.length === 0 && (
              <div className="py-20 text-center border-2 border-dashed border-white/5 rounded-[40px]">
-                <p className="text-white/20 text-xs font-black uppercase tracking-[0.4em]">No se han encontrado activos que coincidan con los filtros</p>
+                <p className="text-white/20 text-xs font-black uppercase tracking-[0.4em]">{t.squad_empty}</p>
              </div>
           )}
         </div>
